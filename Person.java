@@ -2,20 +2,26 @@ import java.util.ArrayList;
 
 public abstract class Person {
 	private ArrayList<Card> oneRoundCard;
+	
+	//設定此牌局所得到的卡 setter
 	public void setOneRoundCard(ArrayList<Card> cards){
 		oneRoundCard=cards;
 	}
+	
+	//return此牌局得到的卡getter
 	public ArrayList<Card> getOneRoundCard(){
 		return oneRoundCard;
 	}
+	
 	public abstract boolean hit_me(Table table);
+	
 	public int getTotalValue() {
 		int Ace_count = 0;
 		int total_value = 0;
 		for (Card c : oneRoundCard) {
 			if (Ace_count == 0 && c.getRank() == 1) {
 				Ace_count = 1;
-				continue;
+				continue;//向下一個step執行
 			} else {
 				if (c.getRank() == 11 || c.getRank() == 12 || c.getRank() == 13)
 					total_value += 10;
@@ -33,6 +39,7 @@ public abstract class Person {
 		}
 		return total_value;
 	}
+	
 	public boolean hasAce() {
 		boolean hasAce= false;
 		for (Card c : oneRoundCard) {
@@ -42,6 +49,7 @@ public abstract class Person {
 		}
 		return hasAce;
 	}
+	
 	public void printAllCard(){
 		for(Card c : oneRoundCard){
 			c.printCard();

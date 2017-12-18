@@ -1,0 +1,453 @@
+import java.util.ArrayList;
+
+public class Table {
+
+	// Class field
+	public static final int MAXPLAYER = 4;// 最多一張牌桌能坐幾個人
+
+	// instance field
+	private Deck deck; // 存放所有的牌
+	private int nDeck;// 有幾副牌
+	private Player[] players;// 存放所有的玩家
+	private Dealer dealer;// 存放一個莊家
+	private int[] pos_betArray = new int[MAXPLAYER];// 存放每個玩家在一局下的注
+
+	private ArrayList<Card> player1Card = new ArrayList<Card>();
+	private ArrayList<Card> player2Card = new ArrayList<Card>();
+	private ArrayList<Card> player3Card = new ArrayList<Card>();
+	private ArrayList<Card> player4Card = new ArrayList<Card>();
+	private ArrayList<Card> dealerCard = new ArrayList<Card>();
+
+	// Table constructor // 輸入參數為 int nDeck
+	public Table(int nDeck) {
+		this.nDeck = nDeck;
+		deck = new Deck(nDeck); // 將Deck class實體化,並存入instance field "deck"
+		players = new Player[MAXPLAYER];// 初始化"players"，並宣告一個長度是MAXPLAYER
+										// 的Player array
+	}
+
+	// 將Player放到牌桌上,player的setter
+	// pos為牌桌位置，最多MAXPLAYER人，p為Player instance
+	public void set_player(int pos, Player p) {
+		players[pos] = p;
+	}
+
+	// 回傳所有在牌桌上的player,player的getter
+	// 意即回傳型別為Player[]的變數(instance field)變數
+	public Player[] get_player() {
+		return players;
+	}
+
+	// 將Dealer放到牌桌上 ,dealer的setter
+	// 意即將Dealer放到型別為Dealer 的變數(instance field) 中
+	public void set_dealer(Dealer d) {
+		dealer = d;
+	}
+
+	// 回傳dealer牌面朝上的牌，也就是第二張牌
+	public Card get_face_up_card_of_dealer() {
+		return dealer.getOneRoundCard().get(0);
+	}
+
+	private void ask_each_player_about_bets() {
+		for (int i = 0; i < MAXPLAYER; i++) {
+			players[i].sayHello();// 請每個玩家打招呼
+			players[i].makeBet();// 請每個玩家下注
+			pos_betArray[i] = players[i].makeBet();// 每個玩家下的注要存在pos_betArray供之後使用
+		}
+	}
+
+	// 發牌給玩家跟莊家
+	// 發牌給莊家後，在畫面上印出莊家打開的牌"Dealer's face up card is " (提示: printCard())
+	private void distribute_cards_to_dealer_and_players() {
+
+		// 發兩張打開的牌給玩家1
+		player1Card.add(deck.getOneCard(true));
+		player1Card.add(deck.getOneCard(true));
+		players[0].setOneRoundCard(player1Card);// 設定玩家1此牌局得到的卡
+
+		// 發兩張打開的牌給玩家2
+		player2Card.add(deck.getOneCard(true));
+		player2Card.add(deck.getOneCard(true));
+		players[1].setOneRoundCard(player2Card);// 設定玩家2此牌局得到的卡
+
+		// 發兩張打開的牌給玩家3
+		player3Card.add(deck.getOneCard(true));
+		player3Card.add(deck.getOneCard(true));
+		players[2].setOneRoundCard(player3Card);// 設定玩家3此牌局得到的卡
+
+		// 發兩張打開的牌給玩家4
+		player4Card.add(deck.getOneCard(true));
+		player4Card.add(deck.getOneCard(true));
+		players[3].setOneRoundCard(player4Card);// 設定玩家4此牌局得到的卡
+
+		// 發一張蓋著的牌，以及一張打開的牌給莊家。
+		dealerCard.add(deck.getOneCard(false));
+		dealerCard.add(deck.getOneCard(true));
+		dealer.setOneRoundCard(dealerCard);// 設定莊家此牌局得到的卡
+		System.out.print("Dealer's face up card is ");
+		dealerCard.get(1).printCard();// 在畫面上印出莊家"打開"的牌
+	}
+
+	// 問每個玩家要不要牌 (提示: hit_me(Table tbl))
+	// 詢問順序: 按照加入牌局的順序而定 (位置)
+	private void ask_each_player_about_hits() {
+
+		// 詢問player1是否要牌
+		boolean hit = false;
+		do {
+			hit = players[0].hit_me(this);// 用hit_me方法判斷玩家是否要牌,"要"回傳true,"否"回傳false
+			if (hit) {
+				// 回傳true
+				player1Card.add(deck.getOneCard(false));// "再"發給玩家1一張牌
+				players[0].setOneRoundCard(player1Card);// 重新設定玩家1此牌局得到的卡
+				System.out.print("Hit! ");
+				System.out.println(players[0].getName() + "'s Cards now:");
+				players[0].printAllCard();// 將玩家1"要牌後"的完整牌印出
+			} else {
+				// 回傳false
+				System.out.println(players[0].getName() + ", Pass hit!");
+				System.out.println(players[0].getName() + "'s hit is over!");
+			}
+		} while (hit);// 假如莊家還要牌,再執行一次迴圈
+
+		hit = false;
+		do {
+			hit = players[1].hit_me(this); // 用hit_me方法判斷玩家是否要牌,"要"回傳true,"否"回傳false
+			if (hit) {
+				// 回傳true
+				player2Card.add(deck.getOneCard(false));// "再"發給玩家2一張牌
+				players[1].setOneRoundCard(player2Card);// 重新設定玩家2此牌局得到的卡
+				System.out.print("Hit! ");
+				System.out.println(players[1].getName() + "'s Cards now:");
+				players[1].printAllCard();// 將玩家2"要牌後"的完整牌印出
+			} else {
+				// 回傳false
+				System.out.println(players[1].getName() + ", Pass hit!");
+				players[1].printAllCard();
+			}
+		} while (hit);// 假如莊家還要牌,再執行一次迴圈
+
+		hit = false;
+		do {
+			hit = players[2].hit_me(this); // 用hit_me方法判斷玩家是否要牌,"要"回傳true,"否"回傳false
+			if (hit) {
+				// 回傳true
+				player3Card.add(deck.getOneCard(true));// "再"發給玩家3一張牌
+				players[2].setOneRoundCard(player3Card);// 重新設定玩家3此牌局得到的卡
+				System.out.print("Hit! ");
+				System.out.println(players[2].getName() + "'s Cards now:");
+				players[2].printAllCard();// 將玩家3"要牌後"的完整牌印出
+			} else {
+				// 回傳false
+				System.out.println(players[2].getName() + ", Pass hit!");
+				players[2].printAllCard();
+			}
+		} while (hit);// 假如莊家還要牌,再執行一次迴圈
+
+		hit = false;
+		do {
+			hit = players[3].hit_me(this); // 用hit_me方法判斷玩家是否要牌,"要"回傳true,"否"回傳false
+			if (hit) {
+				// 回傳true
+				player4Card.add(deck.getOneCard(true));// "再"發給玩家4一張牌
+				players[3].setOneRoundCard(player4Card);// 重新設定玩家4此牌局得到的卡
+				System.out.print("Hit! ");
+				System.out.println(players[3].getName() + "'s Cards now:");
+				players[3].printAllCard();
+			} else {
+				// 回傳false
+				System.out.println(players[3].getName() + ", Pass hit!");
+				players[3].printAllCard();// 將玩家4"要牌後"的完整牌印出
+			}
+		} while (hit);// 假如莊家還要牌,再執行一次迴圈
+	}
+
+	// 詢問莊家是否要牌，完成後，印出"Dealer's hit is over!"
+	private void ask_dealer_about_hits() {
+
+		boolean hit = false;
+		do {
+			hit = dealer.hit_me(this); // this
+			if (hit) {
+				dealerCard.add(deck.getOneCard(true));
+				dealer.setOneRoundCard(dealerCard);
+			} else {
+				System.out.println("Dealer's hit is over!");
+
+			}
+		} while (hit);
+	}
+
+	// 印出莊家的點數和牌"Dealer's card value is "+總點數+" ,Cards:"+牌們 (提示: printAllCard())
+	// 莊家跟每一個玩家的牌比
+	// 針對每個玩家，先印出 玩家姓名+" card value is "+玩家總點數
+	// 看誰贏，要是莊家贏，把玩家籌碼沒收，印出", Loss "+下注籌碼數+" Chips, the Chips now is:
+	// "+玩家最新籌碼數(提示: get_current_chips())
+	// 要是莊家輸，則賠玩家與下注籌碼相符之籌碼，印出",Get "+下注籌碼數+" Chips, the Chips now is:
+	// "+玩家最新籌碼數(提示: get_current_chips())
+	// 不輸不贏，印出",chips have no change! The Chips now is: "+玩家最新籌碼數(提示:
+	// get_current_chips())
+	private void calculate_chips() {
+		// dealer
+		System.out.println("Dealer's card value is " + dealer.getTotalValue() + " ,Cards:");
+		dealer.printAllCard();
+
+		int p1Bet = players[0].makeBet();
+		int p2Bet = players[1].makeBet();
+		int p3Bet = players[2].makeBet();
+		int p4Bet = players[3].makeBet();
+
+		// 玩家贏的訊息
+		// player[i].getName() + " card value is " + player[i].getTotalValue()+
+		// " ,Get 1 Chips, the Chips now is:" + player[i].getCurrentChips();
+
+		// 莊家贏的訊息
+		// player[i].getName() + " card value is " + player[i].getTotalValue() +
+		// ", Loss "+ player[i].makeBet() + " Chips, the Chips now is:" +
+		// player[i].getCurrentChips();
+
+		// 平手的訊息
+		// player[i].getName() + " card value is " + player[i].getTotalValue()+
+		// " chips have no change!, the Chips now is: " +
+		// player[i].getCurrentChips();
+
+		// player1
+		System.out.println(players[0].getName() + " ,Cards:");
+		players[0].printAllCard();
+
+		// 莊家沒爆,玩家爆
+		if (dealer.getTotalValue() <= 21 && players[0].getTotalValue() > 21) {
+			players[0].increaseChips(-p1Bet);
+			System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue() + ", Loss " + p1Bet
+					+ " Chips, the Chips now is:" + players[0].getCurrentChips());
+		}
+
+		// 莊家爆,玩家沒爆
+		if (dealer.getTotalValue() > 21 && players[0].getTotalValue() <= 21) {
+			players[0].increaseChips(p1Bet);
+			System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue()
+					+ " ,Get 1 Chips, the Chips now is:" + players[0].getCurrentChips());
+		}
+
+		// 莊家沒爆,玩家沒爆
+		if (dealer.getTotalValue() <= 21 && players[0].getTotalValue() <= 21) {
+			if (dealer.getTotalValue() == players[0].getTotalValue()) {
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[0].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[0].getTotalValue()) {
+				players[0].increaseChips(-p1Bet);
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue() + ", Loss "
+						+ p1Bet + " Chips, the Chips now is:" + players[0].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[0].getTotalValue()) {
+				players[0].increaseChips(p1Bet);
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[0].getCurrentChips());
+			}
+
+		}
+
+		// 莊家爆,玩家爆
+		if (dealer.getTotalValue() > 21 && players[0].getTotalValue() > 21) {
+			if (dealer.getTotalValue() == players[0].getTotalValue()) {
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[0].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[0].getTotalValue()) {
+				players[0].increaseChips(-p1Bet);
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue() + ", Loss "
+						+ p1Bet + " Chips, the Chips now is:" + players[0].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[0].getTotalValue()) {
+				players[0].increaseChips(p1Bet);
+				System.out.println(players[0].getName() + " card value is " + players[0].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[0].getCurrentChips());
+			}
+
+		}
+
+		// player2
+		System.out.println(players[1].getName() + " ,Cards:");
+		players[1].printAllCard();
+
+		// 莊家沒爆,玩家爆
+		if (dealer.getTotalValue() <= 21 && players[1].getTotalValue() > 21) {
+			players[1].increaseChips(-p2Bet);
+			System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue() + ", Loss " + p2Bet
+					+ " Chips, the Chips now is:" + players[1].getCurrentChips());
+		}
+
+		// 莊家爆,玩家沒爆
+		if (dealer.getTotalValue() > 21 && players[1].getTotalValue() <= 21) {
+			players[1].increaseChips(p2Bet);
+			System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue()
+					+ " ,Get 1 Chips, the Chips now is:" + players[1].getCurrentChips());
+		}
+
+		// 莊家沒爆,玩家沒爆
+		if (dealer.getTotalValue() <= 21 && players[1].getTotalValue() <= 21) {
+			if (dealer.getTotalValue() == players[1].getTotalValue()) {
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[1].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[1].getTotalValue()) {
+				players[1].increaseChips(-p2Bet);
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue() + ", Loss "
+						+ p2Bet + " Chips, the Chips now is:" + players[1].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[1].getTotalValue()) {
+				players[1].increaseChips(p2Bet);
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[1].getCurrentChips());
+			}
+
+		}
+
+		// 莊家爆,玩家爆
+		if (dealer.getTotalValue() > 21 && players[1].getTotalValue() > 21) {
+			if (dealer.getTotalValue() == players[1].getTotalValue()) {
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[1].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[1].getTotalValue()) {
+				players[1].increaseChips(-p2Bet);
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue() + ", Loss "
+						+ p2Bet + " Chips, the Chips now is:" + players[1].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[1].getTotalValue()) {
+				players[1].increaseChips(p2Bet);
+				System.out.println(players[1].getName() + " card value is " + players[1].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[1].getCurrentChips());
+			}
+
+		}
+
+		// player3
+		System.out.println(players[2].getName() + " ,Cards:");
+		players[2].printAllCard();
+
+		// 莊家沒爆,玩家爆
+		if (dealer.getTotalValue() <= 21 && players[2].getTotalValue() > 21) {
+			players[2].increaseChips(-p3Bet);
+			System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue() + ", Loss " + p3Bet
+					+ " Chips, the Chips now is:" + players[2].getCurrentChips());
+		}
+
+		// 莊家爆,玩家沒爆
+		if (dealer.getTotalValue() > 21 && players[2].getTotalValue() <= 21) {
+			players[2].increaseChips(p3Bet);
+			System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue()
+					+ " ,Get 1 Chips, the Chips now is:" + players[2].getCurrentChips());
+		}
+
+		// 莊家沒爆,玩家沒爆
+		if (dealer.getTotalValue() <= 21 && players[2].getTotalValue() <= 21) {
+			if (dealer.getTotalValue() == players[2].getTotalValue()) {
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[2].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[2].getTotalValue()) {
+				players[2].increaseChips(-p3Bet);
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue() + ", Loss "
+						+ p3Bet + " Chips, the Chips now is:" + players[2].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[2].getTotalValue()) {
+				players[2].increaseChips(p3Bet);
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[2].getCurrentChips());
+			}
+
+		}
+
+		// 莊家爆,玩家爆
+		if (dealer.getTotalValue() > 21 && players[2].getTotalValue() > 21) {
+			if (dealer.getTotalValue() == players[2].getTotalValue()) {
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[2].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[2].getTotalValue()) {
+				players[2].increaseChips(-p3Bet);
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue() + ", Loss "
+						+ p3Bet + " Chips, the Chips now is:" + players[2].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[2].getTotalValue()) {
+				players[2].increaseChips(p3Bet);
+				System.out.println(players[2].getName() + " card value is " + players[2].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[2].getCurrentChips());
+			}
+
+		}
+
+		// player4
+		System.out.println(players[3].getName() + " ,Cards:");
+		players[3].printAllCard();
+
+		// 莊家沒爆,玩家爆
+		if (dealer.getTotalValue() <= 21 && players[3].getTotalValue() > 21) {
+			players[3].increaseChips(-p4Bet);
+			System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue() + ", Loss " + p4Bet
+					+ " Chips, the Chips now is:" + players[3].getCurrentChips());
+		}
+
+		// 莊家爆,玩家沒爆
+		if (dealer.getTotalValue() > 21 && players[3].getTotalValue() <= 21) {
+			players[3].increaseChips(p4Bet);
+			System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue()
+					+ " ,Get 1 Chips, the Chips now is:" + players[3].getCurrentChips());
+		}
+
+		// 莊家沒爆,玩家沒爆
+		if (dealer.getTotalValue() <= 21 && players[3].getTotalValue() <= 21) {
+			if (dealer.getTotalValue() == players[3].getTotalValue()) {
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[3].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[3].getTotalValue()) {
+				players[3].increaseChips(-p4Bet);
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue() + ", Loss "
+						+ p4Bet + " Chips, the Chips now is:" + players[3].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[3].getTotalValue()) {
+				players[3].increaseChips(p4Bet);
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[3].getCurrentChips());
+			}
+
+		}
+
+		// 莊家爆,玩家爆
+		if (dealer.getTotalValue() > 21 && players[3].getTotalValue() > 21) {
+			if (dealer.getTotalValue() == players[3].getTotalValue()) {
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue()
+						+ " chips have no change!, the Chips now is: " + players[3].getCurrentChips());
+			}
+			if (dealer.getTotalValue() < players[3].getTotalValue()) {
+				players[3].increaseChips(-p4Bet);
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue() + ", Loss "
+						+ p4Bet + " Chips, the Chips now is:" + players[3].getCurrentChips());
+			}
+			if (dealer.getTotalValue() > players[3].getTotalValue()) {
+				players[3].increaseChips(p4Bet);
+				System.out.println(players[3].getName() + " card value is " + players[3].getTotalValue()
+						+ " ,Get 1 Chips, the Chips now is:" + players[3].getCurrentChips());
+			}
+
+		}
+
+	}
+
+	public int[] get_palyers_bet() {
+		return pos_betArray;
+	}
+
+	public void play() {
+		ask_each_player_about_bets();
+		distribute_cards_to_dealer_and_players();
+		ask_each_player_about_hits();
+		ask_dealer_about_hits();
+		calculate_chips();
+	}
+
+}
